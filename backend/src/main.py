@@ -9,7 +9,7 @@ from rclpy.executors import MultiThreadedExecutor
 
 from api.app import create_app
 from api.websocket import WebSocketManager
-from executors import IOExecutor, RobotExecutor, CameraExecutor, HandExecutor, DobotNova5Executor
+from executors import IOExecutor, RobotExecutor, PandaExecutor, CameraExecutor, HandExecutor, DobotNova5Executor
 from flow.manager import FlowManager
 from nodes.ur_node import RobotNode
 from nodes.dobot_nova5_node import DobotNova5Node
