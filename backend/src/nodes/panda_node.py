@@ -432,26 +432,24 @@ class PandaNode(Node):
             raise RuntimeError("Panda gripper not connected")
         gripper.move(width, speed)
 
-    def close_gripper(self) -> None:
-<<<<<<< HEAD
+    def release_gripper(self, speed: float = 0.06) -> None:
         with self._lock:
             gripper = self._gripper
         if gripper is None:
             raise RuntimeError("Panda gripper not connected")
-        gripper.grasp()
-=======
-        """Close gripper (grasp)."""
-        if self._gripper:
-            try:
-                self._gripper.grasp(0.0, 0.02, 20.0, epsilon_outer=1.0)
-            except Exception as exc:
-                logger.error("PandaNode.close_gripper: %s", exc)
->>>>>>> ec791e03bd37fb3a16b7f615d29701d97da48878
+        gripper.open(speed)
+
+    def close_gripper(self) -> None:
+        with self._lock:
+            gripper = self._gripper
+        if gripper is None:
+            raise RuntimeError("Panda gripper not connected")
+        gripper.grasp(0.0, 0.06, 20.0, epsilon_outer=1.0)
 
     def grasp(
         self,
         width: float = 0.0,
-        speed: float = 0.02,
+        speed: float = 0.06,
         force: float = 20.0,
         epsilon_outer: float = 1.0,
     ) -> bool:
@@ -474,6 +472,17 @@ class PandaNode(Node):
         except Exception as exc:
             logger.error("PandaNode.grasp: %s", exc)
             return False
+
+    def get_gripper_width(self) -> Optional[float]:
+        with self._lock:
+            gripper = self._gripper
+        if gripper is None:
+            return None
+        try:
+            return float(gripper.width())
+        except Exception as exc:
+            logger.error("PandaNode.get_gripper_width: %s", exc)
+            return None
 
     def reset_joints(self) -> None:
         self.send_movej(HOME_JOINTS)

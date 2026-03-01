@@ -18,7 +18,7 @@ class GraspParams(BaseModel):
         description="Target grasp width in metres (distance between fingers, 0.0–0.08)",
     )
     speed: float = Field(
-        default=0.02,
+        default=0.06,
         ge=0.005,
         le=0.2,
         description="Gripper closing speed in m/s",
@@ -62,10 +62,18 @@ class GraspSkill(Skill[GraspParams]):
             force=params.force,
         )
 
+        measured_width = None
+        if hasattr(robot_executor, "get_gripper_width"):
+            try:
+                measured_width = robot_executor.get_gripper_width()
+            except Exception:
+                measured_width = None
+
         if success:
             return SkillResult.ok(
                 {
-                    "width": params.width,
+                    "target_width": params.width,
+                    "gripper_width": measured_width,
                     "speed": params.speed,
                     "force": params.force,
                     "grasped": True,
@@ -75,7 +83,8 @@ class GraspSkill(Skill[GraspParams]):
             return SkillResult.fail(
                 "Grasp failed — object may not be present or width mismatch",
                 {
-                    "width": params.width,
+                    "target_width": params.width,
+                    "gripper_width": measured_width,
                     "force": params.force,
                     "grasped": False,
                 },

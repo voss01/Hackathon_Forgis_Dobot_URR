@@ -26,11 +26,7 @@ export const STATUS_LABEL: Record<DeviceStatus, string> = {
 // ── Vendor brands per device type ────────────────────────────
 
 export const BRANDS: Record<DeviceType, string[]> = {
-<<<<<<< HEAD
   robot: ["Franka", "Universal Robots", "ABB", "KUKA", "Fanuc", "Yaskawa", "Doosan"],
-=======
-  robot: ["Universal Robots", "ABB", "KUKA", "Fanuc", "Yaskawa", "Doosan", "Franka"],
->>>>>>> ec791e03bd37fb3a16b7f615d29701d97da48878
   camera: ["Intel RealSense", "Cognex", "Keyence", "Basler", "Sick", "Allied Vision"],
   sensor: ["Sick", "Pepperl+Fuchs", "Banner Engineering", "ifm", "Balluff"],
 };

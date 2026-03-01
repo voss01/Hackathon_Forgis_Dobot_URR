@@ -19,6 +19,16 @@ import type {
   StepExecState,
 } from "@/types";
 
+function findStepById(flow: Flow, stepId: string) {
+  for (const node of flow.nodes) {
+    const step = node.steps?.find((candidate) => candidate.id === stepId);
+    if (step) {
+      return step;
+    }
+  }
+  return null;
+}
+
 export function useFlowExecution(
   flow: Flow | null,
   camera: CameraCallbacks,
@@ -157,6 +167,14 @@ export function useFlowExecution(
           // Capture label from get_label skill results
           if (msg.result?.label && typeof msg.result.label === "string") {
             camera.onLabel(msg.result.label);
+          }
+
+          const completedStep = flow ? findStepById(flow, msg.step_id) : null;
+          if (
+            completedStep?.skill === "grasp" &&
+            msg.result?.grasped === true
+          ) {
+            camera.onGrasp();
           }
 
           if (!flow) break;

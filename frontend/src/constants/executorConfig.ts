@@ -26,6 +26,7 @@ export const TASKS = [
 export const MOTION_TYPES = [
   { value: "joint", label: "Joint Motion" },
   { value: "linear", label: "Linear Motion" },
+  { value: "grasping", label: "Grasping" },
 ] as const;
 
 export const EMPTY_CREATOR: NodeCreatorState = {

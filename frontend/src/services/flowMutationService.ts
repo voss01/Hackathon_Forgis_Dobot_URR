@@ -35,8 +35,8 @@ function createDefaultStep(
       executor: "robot",
       params: {
         target_joints_deg: joints,
-        acceleration: 0.2,
-        velocity: 0.1,
+        acceleration: 0.3,
+        velocity: 0.15,
         tolerance_deg: 1.0,
       },
       error_handling: {
@@ -45,6 +45,25 @@ function createDefaultStep(
         retry_delay_ms: 1000,
       },
       timeout_ms: 30000,
+    }];
+  }
+
+  if (creator.motionType === "grasping") {
+    return [{
+      id: `${baseId}_grasp_${stepSuffix}`,
+      skill: "grasp",
+      executor: "robot",
+      params: {
+        width: 0,
+        speed: 0.06,
+        force: 20,
+      },
+      error_handling: {
+        strategy: "stop",
+        max_retries: 3,
+        retry_delay_ms: 1000,
+      },
+      timeout_ms: 15000,
     }];
   }
 
@@ -58,8 +77,8 @@ function createDefaultStep(
         ? [pose.x, pose.y, pose.z, pose.rx, pose.ry, pose.rz]
         : [0, 0, 0, 0, 0, 0],
       z_offset: 0,
-      acceleration: 0.03,
-      velocity: 0.02,
+      acceleration: 0.05,
+      velocity: 0.03,
     },
     error_handling: {
       strategy: "stop",

@@ -79,7 +79,7 @@ export interface SelectedStep {
 export interface NodeCreatorState {
   nodeType: string | null;
   task: string | null;
-  motionType: "joint" | "linear" | null;
+  motionType: "joint" | "linear" | "grasping" | null;
   label: string;
 }
 

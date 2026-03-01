@@ -1,30 +1,26 @@
 {
-  "id": "custom_flow_1772354805042",
-  "name": "Custom Motion Flow",
-  "initial_state": "joint_move_5042",
+  "id": "moving_action",
+  "name": "Moving Action",
+  "initial_state": "move_to_start",
   "loop": false,
   "variables": {},
   "states": [
     {
-      "name": "joint_move_5042",
+      "name": "move_to_start",
       "steps": [
         {
-          "id": "joint_move_joint_05042",
+          "id": "step_initial_joint_move",
           "skill": "move_joint",
           "executor": "robot",
           "params": {
             "target_joints_deg": [
-              -37.4081799054103,
-              -58.38295485467861,
-              12.174861388330594,
-              -156.03093750391858,
-              15.451548622229792,
-              106.11395724541471,
-              30.080872735063085
-            ],
-            "acceleration": 0.2,
-            "velocity": 0.1,
-            "tolerance_deg": 1
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
           },
           "store_result": null,
           "error_handling": {
@@ -38,24 +34,21 @@
       ]
     },
     {
-      "name": "linear_move_2009",
+      "name": "move_to_target",
       "steps": [
         {
-          "id": "linear_move_linear_12009",
+          "id": "step_linear_translation",
           "skill": "move_linear",
           "executor": "robot",
           "params": {
             "target_pose": [
+              0.5,
               0,
-              0,
-              0,
+              0.5,
               0,
               0,
               0
-            ],
-            "z_offset": 0,
-            "acceleration": 0.03,
-            "velocity": 0.02
+            ]
           },
           "store_result": null,
           "error_handling": {
@@ -72,8 +65,8 @@
   "transitions": [
     {
       "type": "sequential",
-      "from_state": "joint_move_5042",
-      "to_state": "linear_move_2009",
+      "from_state": "move_to_start",
+      "to_state": "move_to_target",
       "condition": null
     }
   ]

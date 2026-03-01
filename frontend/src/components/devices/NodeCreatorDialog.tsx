@@ -77,8 +77,14 @@ export function NodeCreatorDialog({ open, onClose, onAdd }: NodeCreatorDialogPro
                 onValueChange={(v) =>
                   setCreator((prev) => ({
                     ...prev,
-                    motionType: v as "joint" | "linear",
-                    label: prev.label || (v === "joint" ? "Joint Move" : "Linear Move"),
+                    motionType: v as "joint" | "linear" | "grasping",
+                    label:
+                      prev.label ||
+                      (v === "joint"
+                        ? "Joint Move"
+                        : v === "linear"
+                          ? "Linear Move"
+                          : "Grasping"),
                   }))
                 }
               >

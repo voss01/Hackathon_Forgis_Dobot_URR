@@ -1,15 +1,15 @@
 {
-  "id": "custom_flow_1772353097566",
+  "id": "custom_flow_1772361941843",
   "name": "Custom Motion Flow",
-  "initial_state": "linear_move_7565",
+  "initial_state": "linear_move_1843",
   "loop": false,
   "variables": {},
   "states": [
     {
-      "name": "linear_move_7565",
+      "name": "linear_move_1843",
       "steps": [
         {
-          "id": "linear_move_linear_97566",
+          "id": "linear_move_linear_41843",
           "skill": "move_linear",
           "executor": "robot",
           "params": {
@@ -22,8 +22,8 @@
               0
             ],
             "z_offset": 0,
-            "acceleration": 0.1,
-            "velocity": 0.05
+            "acceleration": 0.05,
+            "velocity": 0.03
           },
           "store_result": null,
           "error_handling": {

@@ -175,6 +175,11 @@ class PandaExecutor(Executor):
         logger.info(f"PandaExecutor: Opening gripper (width={width}, speed={speed})")
         self._node.open_gripper(width=width, speed=speed)
 
+    async def release_gripper(self, speed: float = 0.06) -> None:
+        """Release the current object by fully opening the gripper."""
+        logger.info(f"PandaExecutor: Releasing gripper (speed={speed})")
+        self._node.release_gripper(speed=speed)
+
     async def close_gripper(self) -> None:
         """Close gripper (grasp)."""
         logger.info("PandaExecutor: Closing gripper")
@@ -183,7 +188,7 @@ class PandaExecutor(Executor):
     async def grasp(
         self,
         width: float = 0.0,
-        speed: float = 0.02,
+        speed: float = 0.06,
         force: float = 20.0,
         epsilon_outer: float = 1.0,
     ) -> bool:
@@ -220,6 +225,10 @@ class PandaExecutor(Executor):
     def get_pose(self) -> Optional[dict]:
         """Return current EE pose as a JSON-serializable dict, or None."""
         return self._node.get_pose_dict()
+
+    def get_gripper_width(self) -> Optional[float]:
+        """Return the current gripper width in metres, or None if unavailable."""
+        return self._node.get_gripper_width()
 
     def get_state_summary(self) -> dict:
         return self._node.get_state_summary()

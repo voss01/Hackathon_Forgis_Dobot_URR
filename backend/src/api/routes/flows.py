@@ -372,7 +372,7 @@ async def resume_flow():
 
 _GEMINI_MODEL = "gemini-3-flash-preview"
 
-_FLOW_SYSTEM_PROMPT = """\
+_FLOW_SYSTEM_PROMPT_TEMPLATE = """\
 You are a robot flow generator. Given a natural-language task description, produce a JSON object that conforms EXACTLY to the FlowSchema below. Return ONLY raw JSON — no markdown fences, no explanation.
 
 ## FlowSchema
@@ -404,10 +404,10 @@ You are a robot flow generator. Given a natural-language task description, produ
 ## Available Skills
 
 Robot executor ("executor": "robot"):
-- move_joint: params {"target_joints_deg": [j1, j2, j3, j4, j5, j6]} — six joint angles in degrees
+- move_joint: params {"target_joints_deg": [j1, j2, ..., j__JOINT_COUNT__]} — exactly __JOINT_COUNT__ joint angles in degrees for the current robot
 - move_linear: params {"target_pose": [x, y, z, rx, ry, rz]} — Cartesian pose (metres + radians)
-- grasp: params {"gripper_width": w} — open gripper to width w (metres)
-- release: params {} — release 
+- grasp: params {"width": w, "speed": s, "force": f} — grasp an object at width w (metres)
+- release: params {"speed": s} — open the gripper to release the current object
 
 Camera executor ("executor": "camera"):
 - get_label: params {"prompt": "<what to read>", "use_bbox": false}
@@ -419,10 +419,54 @@ Camera executor ("executor": "camera"):
 - Every state referenced in transitions must exist in the states array.
 - initial_state must match the name of the first state.
 - Use sequential transitions for linear flows. Use conditional transitions (type "conditional", add "condition" field) only when the prompt implies branching.
-- Use placeholder joint values [0,0,0,0,0,0] when exact positions are unknown — the user will fill them in.
+- Use placeholder joint values [__JOINT_PLACEHOLDER__] when exact positions are unknown — the user will fill them in.
 - Step ids must be unique across the entire flow.
 - Keep flows concise: only add states that the prompt requires.
 """
+
+
+def _get_expected_joint_count() -> int:
+    """Return the joint count for the configured robot type."""
+    robot_type = os.environ.get("ROBOT_TYPE", "panda").lower()
+    return 7 if robot_type == "panda" else 6
+
+
+def _build_flow_system_prompt() -> str:
+    """Build the Gemini system prompt with the active robot joint count."""
+    joint_count = _get_expected_joint_count()
+    joint_placeholder = ",".join(["0"] * joint_count)
+    return (
+        _FLOW_SYSTEM_PROMPT_TEMPLATE
+        .replace("__JOINT_COUNT__", str(joint_count))
+        .replace("__JOINT_PLACEHOLDER__", joint_placeholder)
+    )
+
+
+def _normalize_generated_flow(flow_dict: dict[str, Any]) -> dict[str, Any]:
+    """Normalize LLM-generated joint targets to the current robot's joint count."""
+    expected_joint_count = _get_expected_joint_count()
+
+    for state in flow_dict.get("states", []):
+        if not isinstance(state, dict):
+            continue
+        for step in state.get("steps", []):
+            if not isinstance(step, dict) or step.get("skill") != "move_joint":
+                continue
+
+            params = step.get("params")
+            if not isinstance(params, dict):
+                continue
+
+            target_joints = params.get("target_joints_deg")
+            if not isinstance(target_joints, list):
+                continue
+
+            normalized_joints = list(target_joints[:expected_joint_count])
+            if len(normalized_joints) < expected_joint_count:
+                normalized_joints.extend([0] * (expected_joint_count - len(normalized_joints)))
+            params["target_joints_deg"] = normalized_joints
+
+    return flow_dict
 
 
 def _get_gemini_client() -> genai.Client:
@@ -464,7 +508,7 @@ async def generate_flow(request: FlowGenerateRequest):
         response = client.models.generate_content(
             model=_GEMINI_MODEL,
             contents=request.prompt,
-            config={"system_instruction": _FLOW_SYSTEM_PROMPT},
+            config={"system_instruction": _build_flow_system_prompt()},
         )
         raw_text = response.text
         print("Gemini raw response:", raw_text)
@@ -476,7 +520,7 @@ async def generate_flow(request: FlowGenerateRequest):
         )
 
     try:
-        flow_dict = json.loads(_extract_json(raw_text))
+        flow_dict = _normalize_generated_flow(json.loads(_extract_json(raw_text)))
         flow = FlowSchema(**flow_dict)
     except (json.JSONDecodeError, Exception) as exc:
         logger.error("Failed to parse Gemini response: %s\nRaw: %s", exc, raw_text)
