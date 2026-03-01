@@ -30,6 +30,20 @@ services:
     command: bash scripts/start_driver.sh
     restart: unless-stopped
 
+  # ── FRANKA PANDA Driver ──────────────────────────────────────
+  # Enable with: docker compose --profile panda up
+  # Or set COMPOSE_PROFILES=panda in .env
+  panda-driver:
+    profiles: [panda]
+    build: ./assets/panda-driver
+    container_name: panda-driver
+    network_mode: host
+    ipc: host
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+    env_file: .env
+    command: bash scripts/start_driver.sh
+    restart: unless-stopped
 
   # ── Backend Application ──────────────────────────────────────
   # Runs RobotNode + PickAndPlacePipeline + FastAPI flow execution API.

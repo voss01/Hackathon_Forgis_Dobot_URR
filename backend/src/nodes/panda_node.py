@@ -41,12 +41,25 @@ class PandaNode(Node):
     def __init__(self):
         super().__init__("panda_node")
 
+        # Subscribers
+        self._joint_positions: Optional[dict] = None
+        self.create_subscription(JointState, "/joint_states", self._on_joint_states, 10)
+
+        self.get_logger().info("PandaNode initialized")
+
+    def _on_joint_states(self, msg: JointState):
+        if len(msg.name) == len(msg.position):
+            self._joint_positions = dict(zip(msg.name, msg.position))
+
 
     def send_movej(self, target_rad: List[float], accel: float = 1.4, vel: float = 1.05) -> None:
         """Send a joint-space move command.
 
         TODO: Implement via FollowJointTrajectory action or MoveIt 2.
         """
+
+        print(f"PandaNode.send_movej called with target_rad={target_rad}, accel={accel}, vel={vel}")
+
         raise NotImplementedError("PandaNode.send_movej not yet implemented")
 
     def send_movel(self, pose: List[float], accel: float = 1.2, vel: float = 0.25) -> None:
@@ -57,6 +70,8 @@ class PandaNode(Node):
 
         TODO: Implement via MoveIt 2 Cartesian planning or Franka Cartesian controller.
         """
+
+        print(f"PandaNode.send_movel called with pose={pose}, accel={accel}, vel={vel}")
         raise NotImplementedError("PandaNode.send_movel not yet implemented")
 
     # ── State queries ────────────────────────────────────────────────────

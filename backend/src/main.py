@@ -13,6 +13,7 @@ from executors import IOExecutor, RobotExecutor, PandaExecutor, CameraExecutor, 
 from flow.manager import FlowManager
 from nodes.ur_node import RobotNode
 from nodes.dobot_nova5_node import DobotNova5Node
+from nodes.panda_node import PandaNode
 from nodes.camera_node import CameraNode
 from nodes.camera_bridge_node import CameraBridgeNode
 from nodes.covvi_hand_node import CovviHandNode
@@ -41,12 +42,17 @@ def run_ros_executor(ros_executor: MultiThreadedExecutor) -> None:
 def main():
     rclpy.init()
 
-    # Select robot type from environment (ur | dobot)
-    robot_type = os.environ.get("ROBOT_TYPE", "ur").lower()
+    # Select robot type from environment (ur | dobot | panda)
+    robot_type = os.environ.get("ROBOT_TYPE", "panda").lower()
     logger.info(f"Robot type: {robot_type}")
 
     # ROS 2 robot node + executor (type-switched)
-    if robot_type == "dobot":
+    if robot_type == "panda":
+        robot = PandaNode()
+        robot_executor = PandaExecutor(robot)
+        io_robot_executor = None  # Panda I/O can be wired later
+        logger.info("Using Panda robot")
+    elif robot_type == "dobot":
         robot = DobotNova5Node()
         robot_executor = DobotNova5Executor(robot)
         io_robot_executor = None  # DOBOT I/O can be wired later
