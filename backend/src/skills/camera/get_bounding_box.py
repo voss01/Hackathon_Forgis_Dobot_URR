@@ -17,7 +17,7 @@ class GetBoundingBoxParams(BaseModel):
         description="Object class to detect (e.g., 'bottle', 'person', 'cup')",
     )
     confidence_threshold: float = Field(
-        default=0.5,
+        default=0.03,
         ge=0.0,
         le=1.0,
         description="Minimum confidence threshold for detection",

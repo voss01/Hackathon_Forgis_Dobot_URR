@@ -255,7 +255,7 @@ class CameraExecutor(Executor):
     async def detect_objects(
         self,
         class_name: Optional[str] = None,
-        confidence_threshold: float = 0.5,
+        confidence_threshold: float = 0.03,
     ) -> list[BoundingBox]:
         """
         Run YOLO object detection on current frame.
