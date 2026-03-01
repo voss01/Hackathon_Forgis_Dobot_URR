@@ -18,8 +18,6 @@ import os
 import threading
 import time
 from typing import Optional, List
-from sensor_msgs.msg import JointState
-
 from franky import (
     Affine,
     CartesianMotion,
@@ -29,7 +27,6 @@ from franky import (
     Robot,
 )
 from scipy.spatial.transform import Rotation
-from sensor_msgs.msg import JointState
 
 logger = logging.getLogger(__name__)
 
@@ -55,22 +52,6 @@ class PandaNode:
     """
 
     def __init__(self):
-
-        # Subscribers
-        self._joint_positions: Optional[dict] = None
-
-        self.create_subscription(
-            JointState, "/joint_states",
-            self._on_joint_states, 
-            10)
-
-        self.get_logger().info("PandaNode initialized")
-
-    def _on_joint_states(self, msg: JointState):
-        if len(msg.name) == len(msg.position):
-            self._joint_positions = dict(zip(msg.name, msg.position))
-
-
         ip = os.environ.get("PANDA_IP", _DEFAULT_IP)
         dynamics = float(os.environ.get("ROBOT_DYNAMICS", _DEFAULT_DYNAMICS))
 
@@ -223,6 +204,25 @@ class PandaNode:
         except Exception as exc:
             logger.error("PandaNode.get_pose: %s", exc)
             return None
+
+    def get_pose_dict(self) -> Optional[dict]:
+        """Return current EE pose as a JSON-serializable dict, or None.
+
+        Keys: x, y, z (metres), rx, ry, rz (radians, extrinsic XYZ Euler).
+        """
+        affine = self.get_pose()
+        if affine is None:
+            return None
+        translation = list(affine.translation)
+        rpy = Rotation.from_matrix(affine.rotation).as_euler("xyz").tolist()
+        return {
+            "x": translation[0],
+            "y": translation[1],
+            "z": translation[2],
+            "rx": rpy[0],
+            "ry": rpy[1],
+            "rz": rpy[2],
+        }
 
     def get_state_summary(self) -> dict:
         return {

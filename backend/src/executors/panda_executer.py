@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional
 from .base import Executor
 
 if TYPE_CHECKING:
-    from nodes.panda_node import PandaNode
+    from ..nodes.panda_node import PandaNode
 
 logger = logging.getLogger(__name__)
 
@@ -18,18 +18,16 @@ class PandaExecutor(Executor):
 
     Key differences from UR/DOBOT:
     - 7 DOF (skills must provide 7 joint targets)
-    - No External Control / resend pattern — Panda uses ros2_control natively
+    - No External Control / resend pattern — Panda uses franky-control directly
     - Motion completion detected by polling joint stability
     """
 
     executor_type = "robot"
-    
 
     def __init__(self, node: "PandaNode"):
         self._node = node
         self._motion_poll_interval = 0.1  # seconds
-        self.get_logger().info("PandaNode initialized")
-
+        logger.info("PandaExecutor initialized")
 
     async def initialize(self) -> None:
         """Wait for Panda connection."""
@@ -50,6 +48,13 @@ class PandaExecutor(Executor):
 
     def is_ready(self) -> bool:
         return self._node.get_joint_positions() is not None
+
+    async def _wait_for_motion_start(self, timeout: float = 2.0) -> None:
+        """Wait until the background motion thread is actually running."""
+        elapsed = 0.0
+        while not self._node.is_moving() and elapsed < timeout:
+            await asyncio.sleep(0.02)
+            elapsed += 0.02
 
     async def move_joint(
         self,
@@ -75,6 +80,9 @@ class PandaExecutor(Executor):
         logger.info(f"PandaExecutor: Starting movej to {target_rad}")
 
         self._node.send_movej(target_rad, accel=acceleration, vel=velocity)
+
+        # Wait for the motion thread to start before polling
+        await self._wait_for_motion_start()
 
         # Poll until target reached or timeout
         elapsed = 0.0
@@ -111,6 +119,9 @@ class PandaExecutor(Executor):
 
         self._node.send_movel(pose, accel=acceleration, vel=velocity)
 
+        # Wait for the motion thread to start before polling stability
+        await self._wait_for_motion_start()
+
         # Detect completion by waiting for joints to stop moving
         elapsed = 0.0
         prev_joints = None
@@ -140,8 +151,29 @@ class PandaExecutor(Executor):
         logger.error(f"PandaExecutor: Linear move timeout after {timeout}s")
         return False
 
+    async def open_gripper(self, width: float = 0.08, speed: float = 0.1) -> None:
+        """Open gripper to *width* metres at *speed* m/s."""
+        logger.info(f"PandaExecutor: Opening gripper (width={width}, speed={speed})")
+        self._node.open_gripper(width=width, speed=speed)
+
+    async def close_gripper(self) -> None:
+        """Close gripper (grasp)."""
+        logger.info("PandaExecutor: Closing gripper")
+        self._node.close_gripper()
+
+    async def reset_joints(self) -> None:
+        """Blocking move to the canonical home configuration."""
+        logger.info("PandaExecutor: Resetting to home position")
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self._node.reset_joints)
+        logger.info("PandaExecutor: Home position reached")
+
     def get_joint_positions_deg(self) -> Optional[list[float]]:
         return self._node.get_joint_positions_deg()
+
+    def get_pose(self) -> Optional[dict]:
+        """Return current EE pose as a JSON-serializable dict, or None."""
+        return self._node.get_pose_dict()
 
     def get_state_summary(self) -> dict:
         return self._node.get_state_summary()
