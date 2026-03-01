@@ -232,34 +232,34 @@ class PandaNode:
             "io": {"digital_in": [], "digital_out": []},
         }
 
+# Uncomment for testing
+# def example_sequences():
+#     """Example motion sequences — run directly to test against the real robot."""
+#     node = PandaNode()
+#     if not node._connected:
+#         logger.error("PandaNode example: not connected, skipping")
+#         return
 
-def example_sequences():
-    """Example motion sequences — run directly to test against the real robot."""
-    node = PandaNode()
-    if not node._connected:
-        logger.error("PandaNode example: not connected, skipping")
-        return
+#     logger.info("PandaNode example: resetting to home")
+#     node.reset_joints()
 
-    logger.info("PandaNode example: resetting to home")
-    node.reset_joints()
+#     logger.info("PandaNode example: moving to joint target")
+#     target_rad = [0.0, -0.5, 0.0, 0.2, 0.0, 0.5, 0.0]
+#     node.send_movej(target_rad)
+#     while not node.joints_at_target(target_rad):
+#         time.sleep(0.1)
+#     logger.info("PandaNode example: joint target reached — %s deg", node.get_joint_positions_deg())
 
-    logger.info("PandaNode example: moving to joint target")
-    target_rad = [0.0, -0.5, 0.0, -2.0, 0.0, 1.5, 0.0]
-    node.send_movej(target_rad)
-    while not node.joints_at_target(target_rad):
-        time.sleep(0.1)
-    logger.info("PandaNode example: joint target reached — %s deg", node.get_joint_positions_deg())
+#     # logger.info("PandaNode example: Cartesian move +5 cm in Z (relative)")
+#     # node.send_movel_relative([0, 0, 0.05, 0, 0, 0])
+#     # while node.is_moving():
+#     #     time.sleep(0.1)
+#     # logger.info("PandaNode example: done — pose %s", node.get_pose())
 
-    logger.info("PandaNode example: Cartesian move +5 cm in Z (relative)")
-    node.send_movel_relative([0, 0, 0.05, 0, 0, 0])
-    while node.is_moving():
-        time.sleep(0.1)
-    logger.info("PandaNode example: done — pose %s", node.get_pose())
-
-    logger.info("PandaNode example: returning home")
-    node.reset_joints()
+#     logger.info("PandaNode example: returning home")
+#     node.reset_joints()
 
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    example_sequences()
+# if __name__ == "__main__":
+#     logging.basicConfig(level=logging.INFO)
+#     example_sequences()
